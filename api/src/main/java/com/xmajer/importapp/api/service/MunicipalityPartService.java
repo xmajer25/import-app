@@ -11,11 +11,12 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class MunicipalityPartService {
+
     private final MunicipalityPartRepository municipalityPartRepository;
     private final MunicipalityPartMapper municipalityPartMapper;
 
-    public List<MunicipalityPartResponse> getAll(){
-        return municipalityPartRepository.findAll()
+    public List<MunicipalityPartResponse> getAll() {
+        return municipalityPartRepository.findAllWithMunicipality()
                 .stream()
                 .map(municipalityPartMapper::toResponse)
                 .toList();
