@@ -15,7 +15,7 @@ public class MunicipalityService {
     private final MunicipalityRepository municipalityRepository;
     private final MunicipalityMapper municipalityMapper;
 
-    public List<MunicipalityResponse> findAll() {
+    public List<MunicipalityResponse> getAll() {
         return municipalityRepository.findAll()
                 .stream()
                 .map(municipalityMapper::toResponse)

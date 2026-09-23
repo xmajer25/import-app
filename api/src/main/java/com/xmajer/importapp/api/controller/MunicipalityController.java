@@ -26,7 +26,7 @@ public class MunicipalityController {
     @ApiResponse(
             responseCode = "200", description = "Municipalities returned"
     )
-    public ResponseEntity<List<MunicipalityResponse>> findAll() {
-        return ResponseEntity.ok(municipalityService.findAll());
+    public ResponseEntity<List<MunicipalityResponse>> getAll() {
+        return ResponseEntity.ok(municipalityService.getAll());
     }
 }
