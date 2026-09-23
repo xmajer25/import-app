@@ -1,6 +1,6 @@
-package com.xmajer.importapp.importer.downloader;
+package com.xmajer.importapp.importer.download;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.xmajer.importapp.importer.config.ImportProperties;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -9,27 +9,26 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Path;
-import java.time.Duration;
 
 @Component
 public class ArchiveDownloader {
 
     private final HttpClient httpClient;
-    private final Duration requestTimeout;
+    private final ImportProperties properties;
 
     public ArchiveDownloader(
             HttpClient httpClient,
-            @Value("${import.request-timeout}") Duration requestTimeout
+            ImportProperties properties
     ) {
         this.httpClient = httpClient;
-        this.requestTimeout = requestTimeout;
+        this.properties = properties;
     }
 
     public void download(URI source, Path destination)
             throws IOException, InterruptedException {
 
         HttpRequest request = HttpRequest.newBuilder(source)
-                .timeout(requestTimeout)
+                .timeout(properties.requestTimeout())
                 .GET()
                 .build();
 
@@ -47,7 +46,8 @@ public class ArchiveDownloader {
 
         if (response.statusCode() != 200) {
             throw new IOException(
-                    "Archive download failed: HTTP " + response.statusCode()
+                    "Archive download failed: HTTP "
+                            + response.statusCode()
             );
         }
     }

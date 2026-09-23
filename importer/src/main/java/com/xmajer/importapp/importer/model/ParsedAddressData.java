@@ -1,4 +1,13 @@
 package com.xmajer.importapp.importer.model;
 
-public record ParsedAddressData() {
+import java.util.List;
+
+public record ParsedAddressData(
+        List<MunicipalityData> municipalities,
+        List<MunicipalityPartData> municipalityParts
+) {
+    public ParsedAddressData {
+        municipalities = List.copyOf(municipalities);
+        municipalityParts = List.copyOf(municipalityParts);
+    }
 }
