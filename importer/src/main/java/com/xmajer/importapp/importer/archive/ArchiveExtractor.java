@@ -1,13 +1,11 @@
 package com.xmajer.importapp.importer.archive;
 
-import com.xmajer.importapp.importer.model.source.ParsedAddressImport;
-import com.xmajer.importapp.importer.parser.AddressXmlParser;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import javax.xml.stream.XMLStreamException;
+import java.io.FilterInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.zip.ZipEntry;
@@ -15,26 +13,28 @@ import java.util.zip.ZipFile;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
-public class AddressArchiveReader {
+public class ArchiveExtractor {
 
-    private final AddressXmlParser parser;
+    public InputStream openXmlStream(Path archivePath)
+            throws IOException {
 
-    public ParsedAddressImport read(Path archivePath)
-            throws IOException, XMLStreamException {
+        ZipFile archive = new ZipFile(archivePath.toFile());
 
-        try (ZipFile archive = new ZipFile(archivePath.toFile())) {
-
+        try {
             ZipEntry xmlEntry = findXmlEntry(archive);
 
             log.info(
-                    "Parsing XML entry {}",
+                    "Extracting XML entry {}",
                     xmlEntry.getName()
             );
 
-            try (var xmlStream = archive.getInputStream(xmlEntry)) {
-                return parser.parse(xmlStream);
-            }
+            return closeArchiveWithStream(
+                    archive.getInputStream(xmlEntry),
+                    archive
+            );
+        } catch (IOException exception) {
+            archive.close();
+            throw exception;
         }
     }
 
@@ -60,5 +60,21 @@ public class AddressArchiveReader {
         return entry.getName()
                 .toLowerCase(Locale.ROOT)
                 .endsWith(".xml");
+    }
+
+    private InputStream closeArchiveWithStream(
+            InputStream stream,
+            ZipFile archive
+    ) {
+        return new FilterInputStream(stream) {
+            @Override
+            public void close() throws IOException {
+                try {
+                    super.close();
+                } finally {
+                    archive.close();
+                }
+            }
+        };
     }
 }

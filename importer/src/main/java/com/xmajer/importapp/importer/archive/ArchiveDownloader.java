@@ -1,4 +1,4 @@
-package com.xmajer.importapp.importer.download;
+package com.xmajer.importapp.importer.archive;
 
 import com.xmajer.importapp.importer.config.ImportProperties;
 import org.springframework.stereotype.Component;

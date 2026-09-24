@@ -1,9 +1,11 @@
 package com.xmajer.importapp.importer.runner;
 
-import com.xmajer.importapp.importer.archive.AddressArchiveReader;
+import com.xmajer.importapp.importer.archive.ArchiveExtractor;
+import com.xmajer.importapp.importer.archive.ArchiveDownloader;
 import com.xmajer.importapp.importer.config.ImportProperties;
-import com.xmajer.importapp.importer.download.ArchiveDownloader;
+import com.xmajer.importapp.importer.model.source.ParsedAddressImport;
 import com.xmajer.importapp.importer.model.summary.ImportSaveSummary;
+import com.xmajer.importapp.importer.parser.AddressXmlParser;
 import com.xmajer.importapp.importer.service.ImportJobService;
 import com.xmajer.importapp.importer.service.ImportPersistenceService;
 import com.xmajer.importapp.importer.validation.ImportDataValidator;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -27,11 +30,11 @@ public class ImportRunner implements ApplicationRunner {
 
     private final ImportProperties properties;
     private final ArchiveDownloader downloader;
-    private final AddressArchiveReader archiveReader;
+    private final ArchiveExtractor archiveExtractor;
+    private final AddressXmlParser parser;
     private final ImportDataValidator validator;
     private final ImportPersistenceService persistenceService;
     private final ImportJobService importJobService;
-
 
     @Override
     public void run(ApplicationArguments args)
@@ -58,7 +61,9 @@ public class ImportRunner implements ApplicationRunner {
                     archivePath
             );
 
-            var data = archiveReader.read(archivePath);
+            InputStream xmlStream = archiveExtractor.openXmlStream(archivePath);
+
+            ParsedAddressImport data = parser.parse(xmlStream);
 
             validator.validate(data);
 
