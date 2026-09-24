@@ -15,10 +15,8 @@ public class MunicipalityXmlParser {
 
     private static final Map<QName, StaxElementParser.FieldReader> FIELD_READERS =
             Map.of(
-                    RuianXml.MUNICIPALITY_CODE,
-                    StaxElementParser.text(),
-                    RuianXml.MUNICIPALITY_NAME,
-                    StaxElementParser.text()
+                    RuianXml.MUNICIPALITY_CODE, StaxElementParser.text(),
+                    RuianXml.MUNICIPALITY_NAME, StaxElementParser.text()
             );
 
     private static final StaxElementParser<MunicipalitySourceRecord> PARSER =

@@ -13,16 +13,6 @@ import java.util.Map;
 @Component
 public class MunicipalityPartXmlParser {
 
-    private static final Map<QName, StaxElementParser.FieldReader> FIELD_READERS =
-            Map.of(
-                    RuianXml.PART_CODE,
-                    StaxElementParser.text(),
-                    RuianXml.PART_NAME,
-                    StaxElementParser.text(),
-                    RuianXml.PART_MUNICIPALITY,
-                    MunicipalityPartXmlParser::readMunicipalityCode
-            );
-
     private static final StaxElementParser<String> MUNICIPALITY_REFERENCE_PARSER =
             new StaxElementParser<>(
                     RuianXml.PART_MUNICIPALITY,
@@ -33,6 +23,15 @@ public class MunicipalityPartXmlParser {
                             StaxElementParser.text()
                     )
             );
+
+    private static final Map<QName, StaxElementParser.FieldReader> FIELD_READERS =
+            Map.of(
+                    RuianXml.PART_CODE, StaxElementParser.text(),
+                    RuianXml.PART_NAME, StaxElementParser.text(),
+                    RuianXml.PART_MUNICIPALITY, MUNICIPALITY_REFERENCE_PARSER::parse
+            );
+
+
 
     private static final StaxElementParser<MunicipalityPartSourceRecord> PARSER =
             new StaxElementParser<>(
@@ -54,12 +53,6 @@ public class MunicipalityPartXmlParser {
                 fields.get(RuianXml.PART_NAME),
                 fields.get(RuianXml.PART_MUNICIPALITY)
         );
-    }
-
-    private static String readMunicipalityCode(XMLStreamReader reader)
-            throws XMLStreamException {
-
-        return MUNICIPALITY_REFERENCE_PARSER.parse(reader);
     }
 
     private static String municipalityCode(Map<QName, String> fields)
