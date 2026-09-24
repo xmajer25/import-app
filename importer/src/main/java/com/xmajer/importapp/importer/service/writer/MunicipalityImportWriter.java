@@ -18,7 +18,7 @@ public class MunicipalityImportWriter {
 
     public Map<String, Municipality> save(Collection<MunicipalityData> data) {
         Map<String, MunicipalityData> importedMunicipalities =
-                ImportWriterMaps.lastRecordByCode(
+                ImportWriterMaps.uniqueByCode(
                         data,
                         MunicipalityData::code
                 );

@@ -22,7 +22,7 @@ public class MunicipalityPartImportWriter {
             Map<String, Municipality> municipalities
     ) {
         Map<String, MunicipalityPartData> importedParts =
-                ImportWriterMaps.lastRecordByCode(
+                ImportWriterMaps.uniqueByCode(
                         data,
                         MunicipalityPartData::code
                 );

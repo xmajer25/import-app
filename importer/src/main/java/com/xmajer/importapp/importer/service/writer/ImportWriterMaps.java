@@ -12,14 +12,27 @@ final class ImportWriterMaps {
     private ImportWriterMaps() {
     }
 
-    static <T> Map<String, T> lastRecordByCode(
+    static <T> Map<String, T> uniqueByCode(
             Collection<T> items,
             Function<T, String> codeExtractor
     ) {
         Map<String, T> records = new LinkedHashMap<>();
 
         for (T item : items) {
-            records.put(codeExtractor.apply(item), item);
+            String code = codeExtractor.apply(item);
+            T existing = records.get(code);
+
+            if (existing == null) {
+                records.put(code, item);
+                continue;
+            }
+
+            if (!existing.equals(item)) {
+                throw new IllegalArgumentException(
+                        "Conflicting duplicate import record for code: "
+                                + code
+                );
+            }
         }
 
         return records;

@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.stream.StreamSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -31,7 +32,7 @@ class ImportWritersTest {
     private MunicipalityPartRepository partRepository;
 
     @Test
-    void updatesExistingRecordsAndUsesLatestDuplicateFromImport() {
+    void updatesExistingRecordsAndAllowsIdenticalDuplicates() {
         Municipality existingMunicipality = new Municipality(
                 "599735",
                 "Old municipality"
@@ -54,7 +55,7 @@ class ImportWritersTest {
         var partWriter = new MunicipalityPartImportWriter(partRepository);
 
         var municipalities = municipalityWriter.save(List.of(
-                new MunicipalityData("599735", "Ignored duplicate"),
+                new MunicipalityData("599735", "Kopidlno"),
                 new MunicipalityData("599735", "Kopidlno")
         ));
 
@@ -62,7 +63,7 @@ class ImportWritersTest {
                 List.of(
                         new MunicipalityPartData(
                                 "12345",
-                                "Ignored duplicate",
+                                "Drahoraz",
                                 "599735"
                         ),
                         new MunicipalityPartData(
@@ -91,6 +92,22 @@ class ImportWritersTest {
                     assertThat(part.getMunicipality())
                             .isSameAs(existingMunicipality);
                 });
+    }
+
+    @Test
+    void rejectsConflictingDuplicates() {
+        var municipalityWriter = new MunicipalityImportWriter(
+                municipalityRepository
+        );
+
+        assertThatThrownBy(() -> municipalityWriter.save(List.of(
+                new MunicipalityData("599735", "Kopidlno"),
+                new MunicipalityData("599735", "Other name")
+        )))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining(
+                        "Conflicting duplicate import record for code: 599735"
+                );
     }
 
     private List<Municipality> captureSavedMunicipalities() {
