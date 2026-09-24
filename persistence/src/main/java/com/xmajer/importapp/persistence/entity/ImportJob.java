@@ -10,18 +10,18 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.UUID;
 
+import static java.util.Objects.requireNonNull;
+
 @Entity
 @Table(name = "import_job")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 public class ImportJob {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -40,12 +40,40 @@ public class ImportJob {
     @Column(name = "source_url", nullable = false)
     private String sourceUrl;
 
-    @Column(name = "records_created", nullable = false)
-    private int recordsCreated;
+    @Column(name = "municipalities_created", nullable = false)
+    private int municipalitiesCreated;
 
-    @Column(name = "records_updated", nullable = false)
-    private int recordsUpdated;
+    @Column(name = "municipalities_updated", nullable = false)
+    private int municipalitiesUpdated;
+
+    @Column(name = "municipality_parts_created", nullable = false)
+    private int municipalityPartsCreated;
+
+    @Column(name = "municipality_parts_updated", nullable = false)
+    private int municipalityPartsUpdated;
 
     @Column(name = "error_message")
     private String errorMessage;
+
+    public ImportJob(
+            Instant startedAt,
+            Instant finishedAt,
+            ImportStatus importStatus,
+            String sourceUrl,
+            int municipalitiesCreated,
+            int municipalitiesUpdated,
+            int municipalityPartsCreated,
+            int municipalityPartsUpdated,
+            String errorMessage
+    ) {
+        this.startedAt = requireNonNull(startedAt);
+        this.finishedAt = requireNonNull(finishedAt);
+        this.importStatus = requireNonNull(importStatus);
+        this.sourceUrl = requireNonNull(sourceUrl);
+        this.municipalitiesCreated = municipalitiesCreated;
+        this.municipalitiesUpdated = municipalitiesUpdated;
+        this.municipalityPartsCreated = municipalityPartsCreated;
+        this.municipalityPartsUpdated = municipalityPartsUpdated;
+        this.errorMessage = errorMessage;
+    }
 }
