@@ -23,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.zip.ZipFile;
 
 @Slf4j
 @Component
@@ -43,46 +44,9 @@ public class ImportRunner implements ApplicationRunner {
             throws IOException, InterruptedException, XMLStreamException {
 
         Instant startedAt = Instant.now();
-        Path archivePath = null;
 
         try {
-            log.info("Starting address import");
-
-            archivePath = Files.createTempFile(
-                    "address-import-",
-                    ".zip"
-            );
-
-            log.info(
-                    "Downloading archive from {}",
-                    properties.sourceUrl()
-            );
-
-            downloader.download(
-                    properties.sourceUrl(),
-                    archivePath
-            );
-
-            InputStream xmlStream = archiveExtractor.openXmlStream(archivePath);
-
-            ParsedAddressImport data = parser.parse(xmlStream);
-
-            var violations = validator.validate(data);
-            if (!violations.isEmpty()) {throw new ConstraintViolationException(violations);}
-
-            ImportSaveSummary saveSummary = persistenceService.save(data);
-
-            importJobService.recordSuccess(
-                    startedAt,
-                    properties.sourceUrl(),
-                    saveSummary
-            );
-
-            log.info(
-                    "Address import completed in {} ms",
-                    Duration.between(startedAt, Instant.now()).toMillis()
-            );
-
+            executeImport(startedAt);
         } catch (IOException
                  | InterruptedException
                  | RuntimeException
@@ -95,9 +59,60 @@ public class ImportRunner implements ApplicationRunner {
             );
 
             throw exception;
+        }
+    }
+
+    private void executeImport(Instant startedAt)
+            throws IOException, InterruptedException, XMLStreamException {
+
+        log.info("Starting address import");
+
+        Path archivePath = Files.createTempFile(
+                "address-import-",
+                ".zip"
+        );
+
+        try {
+            downloader.download(
+                    properties.sourceUrl(),
+                    archivePath
+            );
+
+            ParsedAddressImport data = parseArchive(archivePath);
+
+            var violations = validator.validate(data);
+
+            if (!violations.isEmpty()) {
+                throw new ConstraintViolationException(violations);
+            }
+
+            ImportSaveSummary saveSummary =
+                    persistenceService.save(data);
+
+            importJobService.recordSuccess(
+                    startedAt,
+                    properties.sourceUrl(),
+                    saveSummary
+            );
+
+            log.info(
+                    "Address import completed in {} ms",
+                    Duration.between(startedAt, Instant.now()).toMillis()
+            );
 
         } finally {
             deleteTempFile(archivePath);
+        }
+    }
+
+    private ParsedAddressImport parseArchive(Path archivePath)
+            throws IOException, XMLStreamException {
+
+        try (
+                ZipFile archive = new ZipFile(archivePath.toFile());
+                InputStream xmlStream = archiveExtractor.openXmlStream(archive)
+        ) {
+            return parser.parse(xmlStream);
         }
     }
 

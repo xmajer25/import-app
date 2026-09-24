@@ -3,10 +3,8 @@ package com.xmajer.importapp.importer.archive;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.Locale;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -15,27 +13,17 @@ import java.util.zip.ZipFile;
 @Component
 public class ArchiveExtractor {
 
-    public InputStream openXmlStream(Path archivePath)
+    public InputStream openXmlStream(ZipFile archive)
             throws IOException {
 
-        ZipFile archive = new ZipFile(archivePath.toFile());
+        ZipEntry xmlEntry = findXmlEntry(archive);
 
-        try {
-            ZipEntry xmlEntry = findXmlEntry(archive);
+        log.info(
+                "Extracting XML entry {}",
+                xmlEntry.getName()
+        );
 
-            log.info(
-                    "Extracting XML entry {}",
-                    xmlEntry.getName()
-            );
-
-            return closeArchiveWithStream(
-                    archive.getInputStream(xmlEntry),
-                    archive
-            );
-        } catch (IOException exception) {
-            archive.close();
-            throw exception;
-        }
+        return archive.getInputStream(xmlEntry);
     }
 
     private ZipEntry findXmlEntry(ZipFile archive)
@@ -60,21 +48,5 @@ public class ArchiveExtractor {
         return entry.getName()
                 .toLowerCase(Locale.ROOT)
                 .endsWith(".xml");
-    }
-
-    private InputStream closeArchiveWithStream(
-            InputStream stream,
-            ZipFile archive
-    ) {
-        return new FilterInputStream(stream) {
-            @Override
-            public void close() throws IOException {
-                try {
-                    super.close();
-                } finally {
-                    archive.close();
-                }
-            }
-        };
     }
 }

@@ -1,58 +1,68 @@
 package com.xmajer.importapp.importer.model.source;
 
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class ParsedAddressImportTest {
 
+    private final Validator validator =
+            Validation.buildDefaultValidatorFactory().getValidator();
+
     @Test
     void rejectsBlankSourceRecordFields() {
-        assertThatThrownBy(() -> new MunicipalitySourceRecord(" ", "Kopidlno"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Municipality code must not be blank");
+        var municipality = new MunicipalitySourceRecord(" ", "Kopidlno");
 
-        assertThatThrownBy(() -> new MunicipalityPartSourceRecord(
+        var part = new MunicipalityPartSourceRecord(
                 "12345",
                 "",
                 "599735"
-        ))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Municipality part name must not be blank");
+        );
+
+        assertThat(validator.validate(municipality))
+                .extracting(violation -> violation.getPropertyPath().toString())
+                .contains("code");
+        assertThat(validator.validate(part))
+                .extracting(violation -> violation.getPropertyPath().toString())
+                .contains("name");
     }
 
     @Test
     void rejectsSourceRecordFieldsLongerThanDatabaseLimit() {
         String tooLong = "x".repeat(256);
 
-        assertThatThrownBy(() -> new MunicipalitySourceRecord("599735", tooLong))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Municipality name exceeds");
+        var municipality = new MunicipalitySourceRecord("599735", tooLong);
+
+        assertThat(validator.validate(municipality))
+                .extracting(violation -> violation.getPropertyPath().toString())
+                .contains("name");
     }
 
     @Test
     void rejectsImportWithoutMunicipalities() {
-        assertThatThrownBy(() -> new ParsedAddressImport(
+        var data = new ParsedAddressImport(
                 List.of(),
                 List.of()
-        ))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("contains no municipality records");
+        );
+
+        assertThat(validator.validate(data))
+                .extracting(violation -> violation.getPropertyPath().toString())
+                .contains("municipalities");
     }
 
     @Test
-    void rejectsMunicipalityPartWithoutImportedParent() {
-        assertThatThrownBy(() -> new ParsedAddressImport(
-                List.of(new MunicipalitySourceRecord("599735", "Kopidlno")),
-                List.of(new MunicipalityPartSourceRecord(
-                        "12345",
-                        "Drahoraz",
-                        "999999"
-                ))
-        ))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("references a municipality absent");
+    void cascadesValidationToSourceRecords() {
+        var data = new ParsedAddressImport(
+                List.of(new MunicipalitySourceRecord(" ", "Kopidlno")),
+                List.of()
+        );
+
+        assertThat(validator.validate(data))
+                .extracting(violation -> violation.getPropertyPath().toString())
+                .contains("municipalities[0].code");
     }
 }
