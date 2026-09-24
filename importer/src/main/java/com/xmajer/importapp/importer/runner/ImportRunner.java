@@ -8,7 +8,8 @@ import com.xmajer.importapp.importer.model.summary.ImportSaveSummary;
 import com.xmajer.importapp.importer.parser.AddressXmlParser;
 import com.xmajer.importapp.importer.service.ImportJobService;
 import com.xmajer.importapp.importer.service.ImportPersistenceService;
-import com.xmajer.importapp.importer.validation.ImportDataValidator;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -32,9 +33,10 @@ public class ImportRunner implements ApplicationRunner {
     private final ArchiveDownloader downloader;
     private final ArchiveExtractor archiveExtractor;
     private final AddressXmlParser parser;
-    private final ImportDataValidator validator;
     private final ImportPersistenceService persistenceService;
     private final ImportJobService importJobService;
+
+    private final Validator validator;
 
     @Override
     public void run(ApplicationArguments args)
@@ -65,7 +67,8 @@ public class ImportRunner implements ApplicationRunner {
 
             ParsedAddressImport data = parser.parse(xmlStream);
 
-            validator.validate(data);
+            var violations = validator.validate(data);
+            if (!violations.isEmpty()) {throw new ConstraintViolationException(violations);}
 
             ImportSaveSummary saveSummary = persistenceService.save(data);
 

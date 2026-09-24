@@ -1,13 +1,13 @@
 package com.xmajer.importapp.importer.model.source;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+
 import java.util.List;
 
 public record ParsedAddressImport(
-        List<MunicipalitySourceRecord> municipalities,
-        List<MunicipalityPartSourceRecord> municipalityParts
+        @NotEmpty
+        List<@Valid MunicipalitySourceRecord> municipalities,
+        List<@Valid MunicipalityPartSourceRecord> municipalityParts
 ) {
-    public ParsedAddressImport {
-        municipalities = List.copyOf(municipalities);
-        municipalityParts = List.copyOf(municipalityParts);
-    }
 }
