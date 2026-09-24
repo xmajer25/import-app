@@ -17,19 +17,19 @@ public class MunicipalityWriter {
 
     private final MunicipalityRepository municipalityRepository;
 
-    public WriteCounts save(
-            Collection<MunicipalitySourceRecord> data,
-            Map<String, Municipality> municipalities
-    ) {
+    public WriteCounts save(Collection<MunicipalitySourceRecord> data) {
         Map<String, MunicipalitySourceRecord> importedMunicipalities =
                 RecordMaps.uniqueByCode(
                         data,
                         MunicipalitySourceRecord::code
-                );
+        );
 
-        municipalities.putAll(loadMunicipalities(
-                importedMunicipalities.keySet()
-        ));
+        Map<String, Municipality> municipalities = RecordMaps.toMap(
+                municipalityRepository.findAllById(
+                        importedMunicipalities.keySet()
+                ),
+                Municipality::getCode
+        );
 
         var municipalitiesToSave = new ArrayList<Municipality>();
         int recordsCreated = 0;
@@ -53,14 +53,5 @@ public class MunicipalityWriter {
         municipalityRepository.saveAll(municipalitiesToSave);
 
         return new WriteCounts(recordsCreated, recordsUpdated);
-    }
-
-    private Map<String, Municipality> loadMunicipalities(
-            Collection<String> codes
-    ) {
-        return RecordMaps.toMap(
-                municipalityRepository.findAllById(codes),
-                Municipality::getCode
-        );
     }
 }

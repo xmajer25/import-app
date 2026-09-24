@@ -5,23 +5,23 @@ import com.xmajer.importapp.importer.model.summary.WriteCounts;
 import com.xmajer.importapp.persistence.entity.Municipality;
 import com.xmajer.importapp.persistence.entity.MunicipalityPart;
 import com.xmajer.importapp.persistence.repository.MunicipalityPartRepository;
+import com.xmajer.importapp.persistence.repository.MunicipalityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class MunicipalityPartWriter {
 
     private final MunicipalityPartRepository partRepository;
+    private final MunicipalityRepository municipalityRepository;
 
-    public WriteCounts save(
-            Collection<MunicipalityPartSourceRecord> data,
-            Map<String, Municipality> municipalities
-    ) {
+    public WriteCounts save(Collection<MunicipalityPartSourceRecord> data) {
         Map<String, MunicipalityPartSourceRecord> importedParts =
                 RecordMaps.uniqueByCode(
                         data,
@@ -30,6 +30,9 @@ public class MunicipalityPartWriter {
 
         Map<String, MunicipalityPart> parts = loadMunicipalityParts(
                 importedParts.keySet()
+        );
+        Map<String, Municipality> municipalities = loadMunicipalities(
+                importedParts.values()
         );
 
         var partsToSave = new ArrayList<MunicipalityPart>();
@@ -49,7 +52,6 @@ public class MunicipalityPartWriter {
 
             if (part == null) {
                 part = new MunicipalityPart(item.code(), item.name(), parent);
-                parts.put(item.code(), part);
                 recordsCreated++;
             } else {
                 part.rename(item.name());
@@ -71,6 +73,19 @@ public class MunicipalityPartWriter {
         return RecordMaps.toMap(
                 partRepository.findAllById(codes),
                 MunicipalityPart::getCode
+        );
+    }
+
+    private Map<String, Municipality> loadMunicipalities(
+            Collection<MunicipalityPartSourceRecord> parts
+    ) {
+        var municipalityCodes = parts.stream()
+                .map(MunicipalityPartSourceRecord::municipalityCode)
+                .collect(Collectors.toSet());
+
+        return RecordMaps.toMap(
+                municipalityRepository.findAllById(municipalityCodes),
+                Municipality::getCode
         );
     }
 }

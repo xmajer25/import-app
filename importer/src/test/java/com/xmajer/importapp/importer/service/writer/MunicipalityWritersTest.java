@@ -12,7 +12,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
@@ -53,15 +52,16 @@ class MunicipalityWritersTest {
         var municipalityWriter = new MunicipalityWriter(
                 municipalityRepository
         );
-        var partWriter = new MunicipalityPartWriter(partRepository);
+        var partWriter = new MunicipalityPartWriter(
+                partRepository,
+                municipalityRepository
+        );
 
-        var municipalities = new LinkedHashMap<String, Municipality>();
         var municipalityCounts = municipalityWriter.save(
                 List.of(
                         new MunicipalitySourceRecord("599735", "Kopidlno"),
                         new MunicipalitySourceRecord("599735", "Kopidlno")
-                ),
-                municipalities
+                )
         );
 
         partWriter.save(
@@ -76,8 +76,7 @@ class MunicipalityWritersTest {
                                 "Drahoraz",
                                 "599735"
                         )
-                ),
-                municipalities
+                )
         );
 
         List<Municipality> savedMunicipalities = captureSavedMunicipalities();
@@ -114,8 +113,7 @@ class MunicipalityWritersTest {
                 List.of(
                         new MunicipalitySourceRecord("599735", "Kopidlno"),
                         new MunicipalitySourceRecord("599735", "Other name")
-                ),
-                new LinkedHashMap<>()
+                )
         ))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining(
