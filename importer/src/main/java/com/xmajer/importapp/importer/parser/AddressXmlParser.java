@@ -1,10 +1,11 @@
 package com.xmajer.importapp.importer.parser;
 
-import com.xmajer.importapp.importer.model.MunicipalityData;
-import com.xmajer.importapp.importer.model.MunicipalityPartData;
-import com.xmajer.importapp.importer.model.ParsedAddressData;
+import com.xmajer.importapp.importer.model.source.MunicipalitySourceRecord;
+import com.xmajer.importapp.importer.model.source.MunicipalityPartSourceRecord;
+import com.xmajer.importapp.importer.model.source.ParsedAddressImport;
 import com.xmajer.importapp.importer.parser.element.MunicipalityPartXmlParser;
 import com.xmajer.importapp.importer.parser.element.MunicipalityXmlParser;
+import com.xmajer.importapp.importer.parser.support.RuianXml;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.xml.StaxUtils;
@@ -24,13 +25,13 @@ public class AddressXmlParser {
     private final MunicipalityXmlParser municipalityParser;
     private final MunicipalityPartXmlParser municipalityPartParser;
 
-    public ParsedAddressData parse(InputStream input)
+    public ParsedAddressImport parse(InputStream input)
             throws XMLStreamException {
 
         XMLStreamReader reader = createReader(input);
 
-        var municipalities = new ArrayList<MunicipalityData>();
-        var parts = new ArrayList<MunicipalityPartData>();
+        var municipalities = new ArrayList<MunicipalitySourceRecord>();
+        var parts = new ArrayList<MunicipalityPartSourceRecord>();
 
         try {
             while (reader.hasNext()) {
@@ -51,7 +52,7 @@ public class AddressXmlParser {
                 }
             }
 
-            return new ParsedAddressData(municipalities, parts);
+            return new ParsedAddressImport(municipalities, parts);
 
         } finally {
             reader.close();

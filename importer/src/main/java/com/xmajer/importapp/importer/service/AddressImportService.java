@@ -3,6 +3,7 @@ package com.xmajer.importapp.importer.service;
 import com.xmajer.importapp.importer.archive.AddressArchiveReader;
 import com.xmajer.importapp.importer.config.ImportProperties;
 import com.xmajer.importapp.importer.download.ArchiveDownloader;
+import com.xmajer.importapp.importer.model.summary.ImportSaveSummary;
 import com.xmajer.importapp.importer.validation.ImportDataValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,7 @@ import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 
 @Slf4j
 @Service
@@ -23,16 +25,20 @@ public class AddressImportService {
     private final AddressArchiveReader archiveReader;
     private final ImportDataValidator validator;
     private final ImportPersistenceService persistenceService;
+    private final ImportJobService importJobService;
 
     public void importData()
             throws IOException, InterruptedException, XMLStreamException {
 
-        Path archivePath = Files.createTempFile(
-                "address-import-",
-                ".zip"
-        );
+        Instant startedAt = Instant.now();
+        Path archivePath = null;
 
         try {
+            archivePath = Files.createTempFile(
+                    "address-import-",
+                    ".zip"
+            );
+
             log.info(
                     "Downloading archive from {}",
                     properties.sourceUrl()
@@ -47,7 +53,26 @@ public class AddressImportService {
 
             validator.validate(data);
 
-            persistenceService.save(data);
+            ImportSaveSummary saveSummary = persistenceService.save(data);
+
+            importJobService.recordSuccess(
+                    startedAt,
+                    properties.sourceUrl(),
+                    saveSummary
+            );
+
+        } catch (IOException
+                 | InterruptedException
+                 | RuntimeException
+                 | XMLStreamException exception) {
+
+            importJobService.recordFailure(
+                    startedAt,
+                    properties.sourceUrl(),
+                    exception
+            );
+
+            throw exception;
 
         } finally {
             deleteTempFile(archivePath);
@@ -55,6 +80,10 @@ public class AddressImportService {
     }
 
     private void deleteTempFile(Path path) {
+        if (path == null) {
+            return;
+        }
+
         try {
             Files.deleteIfExists(path);
         } catch (IOException exception) {

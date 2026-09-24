@@ -1,4 +1,4 @@
-package com.xmajer.importapp.importer.parser;
+package com.xmajer.importapp.importer.parser.support;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;

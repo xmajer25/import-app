@@ -1,7 +1,7 @@
 package com.xmajer.importapp.importer.service.writer;
 
-import com.xmajer.importapp.importer.model.MunicipalityData;
-import com.xmajer.importapp.importer.model.MunicipalityPartData;
+import com.xmajer.importapp.importer.model.source.MunicipalitySourceRecord;
+import com.xmajer.importapp.importer.model.source.MunicipalityPartSourceRecord;
 import com.xmajer.importapp.persistence.entity.Municipality;
 import com.xmajer.importapp.persistence.entity.MunicipalityPart;
 import com.xmajer.importapp.persistence.repository.MunicipalityPartRepository;
@@ -12,6 +12,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
@@ -23,7 +24,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings({"unchecked", "rawtypes"})
-class ImportWritersTest {
+class MunicipalityWritersTest {
 
     @Mock
     private MunicipalityRepository municipalityRepository;
@@ -49,24 +50,28 @@ class ImportWritersTest {
         when(partRepository.findAllById(any()))
                 .thenReturn(List.of(existingPart));
 
-        var municipalityWriter = new MunicipalityImportWriter(
+        var municipalityWriter = new MunicipalityWriter(
                 municipalityRepository
         );
-        var partWriter = new MunicipalityPartImportWriter(partRepository);
+        var partWriter = new MunicipalityPartWriter(partRepository);
 
-        var municipalities = municipalityWriter.save(List.of(
-                new MunicipalityData("599735", "Kopidlno"),
-                new MunicipalityData("599735", "Kopidlno")
-        ));
+        var municipalities = new LinkedHashMap<String, Municipality>();
+        var municipalityCounts = municipalityWriter.save(
+                List.of(
+                        new MunicipalitySourceRecord("599735", "Kopidlno"),
+                        new MunicipalitySourceRecord("599735", "Kopidlno")
+                ),
+                municipalities
+        );
 
         partWriter.save(
                 List.of(
-                        new MunicipalityPartData(
+                        new MunicipalityPartSourceRecord(
                                 "12345",
                                 "Drahoraz",
                                 "599735"
                         ),
-                        new MunicipalityPartData(
+                        new MunicipalityPartSourceRecord(
                                 "12345",
                                 "Drahoraz",
                                 "599735"
@@ -92,18 +97,26 @@ class ImportWritersTest {
                     assertThat(part.getMunicipality())
                             .isSameAs(existingMunicipality);
                 });
+
+        assertThat(municipalityCounts.recordsCreated())
+                .isZero();
+        assertThat(municipalityCounts.recordsUpdated())
+                .isOne();
     }
 
     @Test
     void rejectsConflictingDuplicates() {
-        var municipalityWriter = new MunicipalityImportWriter(
+        var municipalityWriter = new MunicipalityWriter(
                 municipalityRepository
         );
 
-        assertThatThrownBy(() -> municipalityWriter.save(List.of(
-                new MunicipalityData("599735", "Kopidlno"),
-                new MunicipalityData("599735", "Other name")
-        )))
+        assertThatThrownBy(() -> municipalityWriter.save(
+                List.of(
+                        new MunicipalitySourceRecord("599735", "Kopidlno"),
+                        new MunicipalitySourceRecord("599735", "Other name")
+                ),
+                new LinkedHashMap<>()
+        ))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining(
                         "Conflicting duplicate import record for code: 599735"

@@ -1,6 +1,5 @@
-package com.xmajer.importapp.importer.parser.element;
+package com.xmajer.importapp.importer.parser.support;
 
-import com.xmajer.importapp.importer.parser.StaxReaderUtils;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
@@ -12,14 +11,14 @@ import java.util.Objects;
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 
-final class StaxElementParser<Result> {
+public final class StaxElementParser<Result> {
 
     private final QName elementName;
     private final String elementDescription;
     private final ResultFactory<Result> resultFactory;
     private final Map<QName, FieldReader> fieldReaders;
 
-    StaxElementParser(
+    public StaxElementParser(
             QName elementName,
             String elementDescription,
             ResultFactory<Result> resultFactory,
@@ -31,7 +30,7 @@ final class StaxElementParser<Result> {
         this.fieldReaders = Map.copyOf(fieldReaders);
     }
 
-    Result parse(XMLStreamReader reader)
+    public Result parse(XMLStreamReader reader)
             throws XMLStreamException {
 
         Map<QName, String> fields = new LinkedHashMap<>();
@@ -55,7 +54,7 @@ final class StaxElementParser<Result> {
         );
     }
 
-    static FieldReader text() {
+    public static FieldReader text() {
         return StaxReaderUtils::readText;
     }
 
@@ -76,14 +75,14 @@ final class StaxElementParser<Result> {
     }
 
     @FunctionalInterface
-    interface FieldReader {
+    public interface FieldReader {
 
         String read(XMLStreamReader reader)
                 throws XMLStreamException;
     }
 
     @FunctionalInterface
-    interface ResultFactory<T> {
+    public interface ResultFactory<T> {
 
         T build(Map<QName, String> fields)
                 throws XMLStreamException;

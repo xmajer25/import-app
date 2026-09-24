@@ -7,9 +7,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-final class ImportWriterMaps {
+final class RecordMaps {
 
-    private ImportWriterMaps() {
+    private RecordMaps() {
     }
 
     static <T> Map<String, T> uniqueByCode(

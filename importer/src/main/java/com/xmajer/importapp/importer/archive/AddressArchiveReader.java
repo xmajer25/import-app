@@ -1,6 +1,6 @@
 package com.xmajer.importapp.importer.archive;
 
-import com.xmajer.importapp.importer.model.ParsedAddressData;
+import com.xmajer.importapp.importer.model.source.ParsedAddressImport;
 import com.xmajer.importapp.importer.parser.AddressXmlParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,7 @@ public class AddressArchiveReader {
 
     private final AddressXmlParser parser;
 
-    public ParsedAddressData read(Path archivePath)
+    public ParsedAddressImport read(Path archivePath)
             throws IOException, XMLStreamException {
 
         try (ZipFile archive = new ZipFile(archivePath.toFile())) {

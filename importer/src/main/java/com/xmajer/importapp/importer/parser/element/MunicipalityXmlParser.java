@@ -1,7 +1,8 @@
 package com.xmajer.importapp.importer.parser.element;
 
-import com.xmajer.importapp.importer.model.MunicipalityData;
-import com.xmajer.importapp.importer.parser.RuianXml;
+import com.xmajer.importapp.importer.model.source.MunicipalitySourceRecord;
+import com.xmajer.importapp.importer.parser.support.RuianXml;
+import com.xmajer.importapp.importer.parser.support.StaxElementParser;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
@@ -20,7 +21,7 @@ public class MunicipalityXmlParser {
                     StaxElementParser.text()
             );
 
-    private static final StaxElementParser<MunicipalityData> PARSER =
+    private static final StaxElementParser<MunicipalitySourceRecord> PARSER =
             new StaxElementParser<>(
                     RuianXml.MUNICIPALITY,
                     "municipality",
@@ -28,14 +29,14 @@ public class MunicipalityXmlParser {
                     FIELD_READERS
             );
 
-    public MunicipalityData parse(XMLStreamReader reader)
+    public MunicipalitySourceRecord parse(XMLStreamReader reader)
             throws XMLStreamException {
 
         return PARSER.parse(reader);
     }
 
-    private static MunicipalityData build(Map<QName, String> fields) {
-        return new MunicipalityData(
+    private static MunicipalitySourceRecord build(Map<QName, String> fields) {
+        return new MunicipalitySourceRecord(
                 fields.get(RuianXml.MUNICIPALITY_CODE),
                 fields.get(RuianXml.MUNICIPALITY_NAME)
         );

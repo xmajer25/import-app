@@ -1,6 +1,6 @@
 package com.xmajer.importapp.importer.validation;
 
-import com.xmajer.importapp.importer.model.ParsedAddressData;
+import com.xmajer.importapp.importer.model.source.ParsedAddressImport;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
@@ -10,7 +10,7 @@ import java.util.Set;
 @Component
 public class ImportDataValidator {
 
-    public void validate(ParsedAddressData data) {
+    public void validate(ParsedAddressImport data) {
         Objects.requireNonNull(data, "data must not be null");
 
         if (data.municipalities().isEmpty()) {

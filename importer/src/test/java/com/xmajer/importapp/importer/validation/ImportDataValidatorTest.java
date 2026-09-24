@@ -1,8 +1,8 @@
 package com.xmajer.importapp.importer.validation;
 
-import com.xmajer.importapp.importer.model.MunicipalityData;
-import com.xmajer.importapp.importer.model.MunicipalityPartData;
-import com.xmajer.importapp.importer.model.ParsedAddressData;
+import com.xmajer.importapp.importer.model.source.MunicipalitySourceRecord;
+import com.xmajer.importapp.importer.model.source.MunicipalityPartSourceRecord;
+import com.xmajer.importapp.importer.model.source.ParsedAddressImport;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -16,14 +16,14 @@ class ImportDataValidatorTest {
 
     @Test
     void allowsDuplicateCodesBecauseTheyAreUpdatesWithinOneImport() {
-        var data = new ParsedAddressData(
+        var data = new ParsedAddressImport(
                 List.of(
-                        new MunicipalityData("599735", "Old name"),
-                        new MunicipalityData("599735", "Kopidlno")
+                        new MunicipalitySourceRecord("599735", "Old name"),
+                        new MunicipalitySourceRecord("599735", "Kopidlno")
                 ),
                 List.of(
-                        new MunicipalityPartData("12345", "Old part", "599735"),
-                        new MunicipalityPartData("12345", "Drahoraz", "599735")
+                        new MunicipalityPartSourceRecord("12345", "Old part", "599735"),
+                        new MunicipalityPartSourceRecord("12345", "Drahoraz", "599735")
                 )
         );
 
@@ -33,9 +33,9 @@ class ImportDataValidatorTest {
 
     @Test
     void rejectsMunicipalityPartWithoutImportedParent() {
-        var data = new ParsedAddressData(
-                List.of(new MunicipalityData("599735", "Kopidlno")),
-                List.of(new MunicipalityPartData("12345", "Drahoraz", "999999"))
+        var data = new ParsedAddressImport(
+                List.of(new MunicipalitySourceRecord("599735", "Kopidlno")),
+                List.of(new MunicipalityPartSourceRecord("12345", "Drahoraz", "999999"))
         );
 
         assertThatThrownBy(() -> validator.validate(data))

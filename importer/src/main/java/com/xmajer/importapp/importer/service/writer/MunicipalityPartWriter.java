@@ -1,6 +1,7 @@
 package com.xmajer.importapp.importer.service.writer;
 
-import com.xmajer.importapp.importer.model.MunicipalityPartData;
+import com.xmajer.importapp.importer.model.source.MunicipalityPartSourceRecord;
+import com.xmajer.importapp.importer.model.summary.WriteCounts;
 import com.xmajer.importapp.persistence.entity.Municipality;
 import com.xmajer.importapp.persistence.entity.MunicipalityPart;
 import com.xmajer.importapp.persistence.repository.MunicipalityPartRepository;
@@ -13,18 +14,18 @@ import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
-public class MunicipalityPartImportWriter {
+public class MunicipalityPartWriter {
 
     private final MunicipalityPartRepository partRepository;
 
-    public void save(
-            Collection<MunicipalityPartData> data,
+    public WriteCounts save(
+            Collection<MunicipalityPartSourceRecord> data,
             Map<String, Municipality> municipalities
     ) {
-        Map<String, MunicipalityPartData> importedParts =
-                ImportWriterMaps.uniqueByCode(
+        Map<String, MunicipalityPartSourceRecord> importedParts =
+                RecordMaps.uniqueByCode(
                         data,
-                        MunicipalityPartData::code
+                        MunicipalityPartSourceRecord::code
                 );
 
         Map<String, MunicipalityPart> parts = loadMunicipalityParts(
@@ -32,6 +33,8 @@ public class MunicipalityPartImportWriter {
         );
 
         var partsToSave = new ArrayList<MunicipalityPart>();
+        int recordsCreated = 0;
+        int recordsUpdated = 0;
 
         for (var item : importedParts.values()) {
             Municipality parent = municipalities.get(item.municipalityCode());
@@ -42,23 +45,30 @@ public class MunicipalityPartImportWriter {
                 );
             }
 
-            MunicipalityPart part = parts.computeIfAbsent(
-                    item.code(),
-                    code -> new MunicipalityPart(code, item.name(), parent)
-            );
+            MunicipalityPart part = parts.get(item.code());
 
-            part.rename(item.name());
-            part.changeMunicipality(parent);
+            if (part == null) {
+                part = new MunicipalityPart(item.code(), item.name(), parent);
+                parts.put(item.code(), part);
+                recordsCreated++;
+            } else {
+                part.rename(item.name());
+                part.changeMunicipality(parent);
+                recordsUpdated++;
+            }
+
             partsToSave.add(part);
         }
 
         partRepository.saveAll(partsToSave);
+
+        return new WriteCounts(recordsCreated, recordsUpdated);
     }
 
     private Map<String, MunicipalityPart> loadMunicipalityParts(
             Collection<String> codes
     ) {
-        return ImportWriterMaps.toMap(
+        return RecordMaps.toMap(
                 partRepository.findAllById(codes),
                 MunicipalityPart::getCode
         );
