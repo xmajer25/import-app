@@ -1,5 +1,8 @@
 package com.xmajer.importapp.importer.parser.support;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
@@ -15,6 +18,52 @@ public final class StaxReaderUtils {
             throws XMLStreamException {
 
         return reader.getElementText().strip();
+    }
+
+    public static Integer readInteger(XMLStreamReader reader)
+            throws XMLStreamException {
+
+        String value = readText(reader);
+
+        try {
+            return Integer.valueOf(value);
+        } catch (NumberFormatException e) {
+            throw new XMLStreamException(
+                    "Invalid integer value: " + value,
+                    e
+            );
+        }
+    }
+
+    public static Long readLong(XMLStreamReader reader)
+            throws XMLStreamException {
+
+        String value = readText(reader);
+
+        try {
+            return Long.valueOf(value);
+        } catch (NumberFormatException e) {
+            throw new XMLStreamException(
+                    "Invalid long value: " + value,
+                    e
+            );
+        }
+    }
+
+    public static Instant readInstantUtc(XMLStreamReader reader)
+            throws XMLStreamException {
+
+        String value = readText(reader);
+
+        try {
+            return LocalDateTime.parse(value)
+                    .toInstant(ZoneOffset.UTC);
+        } catch (RuntimeException e) {
+            throw new XMLStreamException(
+                    "Invalid date-time value: " + value,
+                    e
+            );
+        }
     }
 
     public static void skipElement(XMLStreamReader reader)

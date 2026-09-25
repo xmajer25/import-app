@@ -85,7 +85,7 @@ public class ImportRunner implements ApplicationRunner {
                     archivePath
             );
 
-            ParsedAddressImport data = parseArchive(archivePath);
+            ParsedAddressImport data = parseArchive(archivePath, options);
 
             var violations = validator.validate(data);
 
@@ -93,8 +93,7 @@ public class ImportRunner implements ApplicationRunner {
                 throw new ConstraintViolationException(violations);
             }
 
-            ImportSaveSummary saveSummary =
-                    persistenceService.save(data);
+            ImportSaveSummary saveSummary = persistenceService.save(data);
 
             importJobService.recordSuccess(
                     startedAt,
@@ -112,14 +111,17 @@ public class ImportRunner implements ApplicationRunner {
         }
     }
 
-    private ParsedAddressImport parseArchive(Path archivePath)
+    private ParsedAddressImport parseArchive(
+            Path archivePath,
+            ImportOptions options
+    )
             throws IOException, XMLStreamException {
 
         try (
                 ZipFile archive = new ZipFile(archivePath.toFile());
                 InputStream xmlStream = archiveExtractor.openXmlStream(archive)
         ) {
-            return parser.parse(xmlStream);
+            return parser.parse(xmlStream, options);
         }
     }
 

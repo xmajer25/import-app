@@ -1,9 +1,12 @@
 package com.xmajer.importapp.importer.service.writer;
 
+import com.xmajer.importapp.importer.model.source.MunicipalityExtendedSourceRecord;
 import com.xmajer.importapp.importer.model.source.MunicipalitySourceRecord;
 import com.xmajer.importapp.importer.model.source.MunicipalityPartSourceRecord;
 import com.xmajer.importapp.persistence.entity.Municipality;
+import com.xmajer.importapp.persistence.entity.MunicipalityExtended;
 import com.xmajer.importapp.persistence.entity.MunicipalityPart;
+import com.xmajer.importapp.persistence.repository.MunicipalityExtendedRepository;
 import com.xmajer.importapp.persistence.repository.MunicipalityPartRepository;
 import com.xmajer.importapp.persistence.repository.MunicipalityRepository;
 import org.junit.jupiter.api.Test;
@@ -12,6 +15,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.StreamSupport;
 
@@ -27,6 +31,9 @@ class MunicipalityWritersTest {
 
     @Mock
     private MunicipalityRepository municipalityRepository;
+
+    @Mock
+    private MunicipalityExtendedRepository extendedRepository;
 
     @Mock
     private MunicipalityPartRepository partRepository;
@@ -121,6 +128,56 @@ class MunicipalityWritersTest {
                 );
     }
 
+    @Test
+    void savesExtendedRecordsUsingNestedMunicipalityCode() {
+        Municipality existingMunicipality = new Municipality(
+                "573060",
+                "Kopidlno"
+        );
+
+        when(municipalityRepository.findAllById(any()))
+                .thenReturn(List.of(existingMunicipality));
+        when(extendedRepository.findAllById(any()))
+                .thenReturn(List.of());
+
+        var writer = new MunicipalityExtendedWriter(
+                extendedRepository,
+                municipalityRepository
+        );
+
+        writer.save(List.of(new MunicipalityExtendedSourceRecord(
+                new MunicipalitySourceRecord("573060", "Ignored source name"),
+                "OB.573060",
+                3,
+                "3604",
+                "2186",
+                Instant.parse("2019-07-10T00:00:00Z"),
+                2937100L,
+                2042164L,
+                "Kopidlna",
+                "Kopidlnu",
+                "Kopidlno",
+                "Kopidlne",
+                "Kopidlnem",
+                "CZ0522573060"
+        )));
+
+        List<MunicipalityExtended> savedExtended =
+                captureSavedMunicipalitiesExtended();
+
+        assertThat(savedExtended)
+                .singleElement()
+                .satisfies(extended -> {
+                    assertThat(extended.getCode()).isEqualTo("573060");
+                    assertThat(extended.getMunicipality())
+                            .isSameAs(existingMunicipality);
+                    assertThat(extended.getGmlId()).isEqualTo("OB.573060");
+                    assertThat(extended.getStatusCode()).isEqualTo(3);
+                });
+
+        assertThat(existingMunicipality.getName()).isEqualTo("Kopidlno");
+    }
+
     private List<Municipality> captureSavedMunicipalities() {
         ArgumentCaptor<Iterable<Municipality>> captor =
                 ArgumentCaptor.forClass(Iterable.class);
@@ -136,6 +193,16 @@ class MunicipalityWritersTest {
                 ArgumentCaptor.forClass(Iterable.class);
 
         verify(partRepository).saveAll(captor.capture());
+
+        return StreamSupport.stream(captor.getValue().spliterator(), false)
+                .toList();
+    }
+
+    private List<MunicipalityExtended> captureSavedMunicipalitiesExtended() {
+        ArgumentCaptor<Iterable<MunicipalityExtended>> captor =
+                ArgumentCaptor.forClass(Iterable.class);
+
+        verify(extendedRepository).saveAll(captor.capture());
 
         return StreamSupport.stream(captor.getValue().spliterator(), false)
                 .toList();

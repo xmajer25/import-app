@@ -69,21 +69,6 @@ public class MunicipalityExtended extends AuditedEntity {
     @Column(name = "nuts_lau", nullable = false)
     private String nutsLau;
 
-    @Column(name = "geometry_gml_id", nullable = false)
-    private String geometryGmlId;
-
-    @Column(name = "geometry_srs_name", nullable = false)
-    private String geometrySrsName;
-
-    @Column(name = "geometry_srs_dimension", nullable = false)
-    private Integer geometrySrsDimension;
-
-    @Column(name = "geometry_point_gml_id", nullable = false)
-    private String geometryPointGmlId;
-
-    @Column(name = "geometry_position", nullable = false)
-    private String geometryPosition;
-
     public MunicipalityExtended(
             Municipality municipality,
             String gmlId,
@@ -98,15 +83,42 @@ public class MunicipalityExtended extends AuditedEntity {
             String grammaticalCase4,
             String grammaticalCase6,
             String grammaticalCase7,
-            String nutsLau,
-            String geometryGmlId,
-            String geometrySrsName,
-            Integer geometrySrsDimension,
-            String geometryPointGmlId,
-            String geometryPosition
+            String nutsLau
     ) {
         this.municipality = requireNonNull(municipality);
         this.code = requireNonNull(municipality.getCode());
+        update(
+                gmlId,
+                statusCode,
+                districtCode,
+                pouCode,
+                validFrom,
+                transactionId,
+                globalChangeProposalId,
+                grammaticalCase2,
+                grammaticalCase3,
+                grammaticalCase4,
+                grammaticalCase6,
+                grammaticalCase7,
+                nutsLau
+        );
+    }
+
+    public void update(
+            String gmlId,
+            Integer statusCode,
+            String districtCode,
+            String pouCode,
+            Instant validFrom,
+            Long transactionId,
+            Long globalChangeProposalId,
+            String grammaticalCase2,
+            String grammaticalCase3,
+            String grammaticalCase4,
+            String grammaticalCase6,
+            String grammaticalCase7,
+            String nutsLau
+    ) {
         this.gmlId = requireNonNull(gmlId);
         this.statusCode = requireNonNull(statusCode);
         this.districtCode = requireNonNull(districtCode);
@@ -120,10 +132,5 @@ public class MunicipalityExtended extends AuditedEntity {
         this.grammaticalCase6 = requireNonNull(grammaticalCase6);
         this.grammaticalCase7 = requireNonNull(grammaticalCase7);
         this.nutsLau = requireNonNull(nutsLau);
-        this.geometryGmlId = requireNonNull(geometryGmlId);
-        this.geometrySrsName = requireNonNull(geometrySrsName);
-        this.geometrySrsDimension = requireNonNull(geometrySrsDimension);
-        this.geometryPointGmlId = requireNonNull(geometryPointGmlId);
-        this.geometryPosition = requireNonNull(geometryPosition);
     }
 }

@@ -8,6 +8,7 @@ import java.util.List;
 public record ParsedAddressImport(
         @NotEmpty
         List<@Valid MunicipalitySourceRecord> municipalities,
-        List<@Valid MunicipalityPartSourceRecord> municipalityParts
+        List<@Valid MunicipalityPartSourceRecord> municipalityParts,
+        List<@Valid MunicipalityExtendedSourceRecord> municipalitiesExtended
 ) {
 }

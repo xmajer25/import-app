@@ -46,6 +46,7 @@ class ParsedAddressImportTest {
     void rejectsImportWithoutMunicipalities() {
         var data = new ParsedAddressImport(
                 List.of(),
+                List.of(),
                 List.of()
         );
 
@@ -58,6 +59,7 @@ class ParsedAddressImportTest {
     void cascadesValidationToSourceRecords() {
         var data = new ParsedAddressImport(
                 List.of(new MunicipalitySourceRecord(" ", "Kopidlno")),
+                List.of(),
                 List.of()
         );
 

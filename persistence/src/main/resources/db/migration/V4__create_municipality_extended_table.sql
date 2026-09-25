@@ -13,11 +13,6 @@ CREATE TABLE municipality_extended (
     grammatical_case_6 VARCHAR(255) NOT NULL,
     grammatical_case_7 VARCHAR(255) NOT NULL,
     nuts_lau VARCHAR(255) NOT NULL,
-    geometry_gml_id VARCHAR(255) NOT NULL,
-    geometry_srs_name VARCHAR(255) NOT NULL,
-    geometry_srs_dimension INTEGER NOT NULL,
-    geometry_point_gml_id VARCHAR(255) NOT NULL,
-    geometry_position VARCHAR(255) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL,
     modified_at TIMESTAMPTZ NOT NULL,
 

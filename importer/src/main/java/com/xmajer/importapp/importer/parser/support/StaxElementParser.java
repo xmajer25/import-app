@@ -1,6 +1,5 @@
 package com.xmajer.importapp.importer.parser.support;
 
-
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -33,7 +32,7 @@ public final class StaxElementParser<Result> {
     public Result parse(XMLStreamReader reader)
             throws XMLStreamException {
 
-        Map<QName, String> fields = new LinkedHashMap<>();
+        Map<QName, Object> fields = new LinkedHashMap<>();
 
         while (reader.hasNext()) {
             int event = reader.next();
@@ -45,6 +44,8 @@ public final class StaxElementParser<Result> {
             if (event == END_ELEMENT
                     && elementName.equals(reader.getName())) {
 
+                requireFields(fields);
+
                 return resultFactory.build(fields);
             }
         }
@@ -54,13 +55,23 @@ public final class StaxElementParser<Result> {
         );
     }
 
-    public static FieldReader text() {
-        return StaxReaderUtils::readText;
+    public static StaxElementParser<Object> child(
+            QName elementName,
+            String elementDescription,
+            QName childName,
+            FieldReader childReader
+    ) {
+        return new StaxElementParser<>(
+                elementName,
+                elementDescription,
+                fields -> fields.get(childName),
+                Map.of(childName, childReader)
+        );
     }
 
     private void readField(
             XMLStreamReader reader,
-            Map<QName, String> fields
+            Map<QName, Object> fields
     ) throws XMLStreamException {
 
         QName fieldName = reader.getName();
@@ -74,17 +85,30 @@ public final class StaxElementParser<Result> {
         fields.put(fieldName, fieldReader.read(reader));
     }
 
+    private void requireFields(Map<QName, Object> fields)
+            throws XMLStreamException {
+
+        for (QName fieldName : fieldReaders.keySet()) {
+            if (!fields.containsKey(fieldName)) {
+                throw new XMLStreamException(
+                        "Missing " + fieldName.getLocalPart()
+                                + " in " + elementDescription
+                );
+            }
+        }
+    }
+
     @FunctionalInterface
     public interface FieldReader {
 
-        String read(XMLStreamReader reader)
+        Object read(XMLStreamReader reader)
                 throws XMLStreamException;
     }
 
     @FunctionalInterface
     public interface ResultFactory<T> {
 
-        T build(Map<QName, String> fields)
+        T build(Map<QName, Object> fields)
                 throws XMLStreamException;
     }
 }

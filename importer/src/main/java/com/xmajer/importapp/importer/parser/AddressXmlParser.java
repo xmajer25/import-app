@@ -1,8 +1,12 @@
 package com.xmajer.importapp.importer.parser;
 
+import com.xmajer.importapp.importer.cli.ImportOptions;
+import com.xmajer.importapp.importer.model.source.MunicipalityExtendedSourceRecord;
 import com.xmajer.importapp.importer.model.source.MunicipalitySourceRecord;
 import com.xmajer.importapp.importer.model.source.MunicipalityPartSourceRecord;
 import com.xmajer.importapp.importer.model.source.ParsedAddressImport;
+import com.xmajer.importapp.importer.parser.element.ElementXmlParser;
+import com.xmajer.importapp.importer.parser.element.MunicipalityExtendedXmlParser;
 import com.xmajer.importapp.importer.parser.element.MunicipalityPartXmlParser;
 import com.xmajer.importapp.importer.parser.element.MunicipalityXmlParser;
 import com.xmajer.importapp.importer.parser.support.RuianXml;
@@ -22,16 +26,21 @@ import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
 @RequiredArgsConstructor
 public class AddressXmlParser {
 
-    private final MunicipalityXmlParser municipalityParser;
-    private final MunicipalityPartXmlParser municipalityPartParser;
+    private final ElementXmlParser<MunicipalitySourceRecord> municipalityParser;
+    private final ElementXmlParser<MunicipalityExtendedSourceRecord> municipalityExtendedParser;
+    private final ElementXmlParser<MunicipalityPartSourceRecord> municipalityPartParser;
 
-    public ParsedAddressImport parse(InputStream input)
+    public ParsedAddressImport parse(
+            InputStream input,
+            ImportOptions options
+    )
             throws XMLStreamException {
 
         XMLStreamReader reader = createReader(input);
 
         var municipalities = new ArrayList<MunicipalitySourceRecord>();
-        var parts = new ArrayList<MunicipalityPartSourceRecord>();
+        var municipalitiesExtended = new ArrayList<MunicipalityExtendedSourceRecord>();
+        var municipalityParts = new ArrayList<MunicipalityPartSourceRecord>();
 
         try {
             while (reader.hasNext()) {
@@ -42,17 +51,23 @@ public class AddressXmlParser {
                 QName element = reader.getName();
 
                 if (RuianXml.MUNICIPALITY.equals(element)) {
-                    municipalities.add(
-                            municipalityParser.parse(reader)
-                    );
+                    if (options.municipalityExtended()) {
+                        var parsedElement = municipalityExtendedParser.parse(reader);
+                        municipalitiesExtended.add(parsedElement);
+                        municipalities.add(parsedElement.municipalitySourceRecord());
+                    } else {
+                        municipalities.add(municipalityParser.parse(reader));
+                    }
                 } else if (RuianXml.MUNICIPALITY_PART.equals(element)) {
-                    parts.add(
-                            municipalityPartParser.parse(reader)
-                    );
+                    municipalityParts.add(municipalityPartParser.parse(reader));
                 }
             }
 
-            return new ParsedAddressImport(municipalities, parts);
+            return new ParsedAddressImport(
+                    municipalities,
+                    municipalityParts,
+                    municipalitiesExtended
+            );
 
         } finally {
             reader.close();
