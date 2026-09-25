@@ -5,6 +5,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -32,6 +33,13 @@ public class Municipality extends AuditedEntity {
             cascade = CascadeType.REMOVE
     )
     private List<MunicipalityPart> parts = new ArrayList<>();
+
+    @OneToOne(
+            mappedBy = "municipality",
+            cascade = CascadeType.REMOVE,
+            orphanRemoval = true
+    )
+    private MunicipalityExtended extended;
 
     public Municipality(String code, String name) {
         this.code = requireNonNull(code);
