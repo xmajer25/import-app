@@ -3,6 +3,8 @@ package com.xmajer.importapp.importer.runner;
 import com.xmajer.importapp.importer.archive.ArchiveExtractor;
 import com.xmajer.importapp.importer.archive.ArchiveDownloader;
 import com.xmajer.importapp.importer.config.ImportProperties;
+import com.xmajer.importapp.importer.cli.ImportOptions;
+import com.xmajer.importapp.importer.cli.ImportOptionsParser;
 import com.xmajer.importapp.importer.model.source.ParsedAddressImport;
 import com.xmajer.importapp.importer.model.summary.ImportSaveSummary;
 import com.xmajer.importapp.importer.parser.AddressXmlParser;
@@ -34,6 +36,7 @@ public class ImportRunner implements ApplicationRunner {
     private final ArchiveDownloader downloader;
     private final ArchiveExtractor archiveExtractor;
     private final AddressXmlParser parser;
+    private final ImportOptionsParser optionsParser;
     private final ImportPersistenceService persistenceService;
     private final ImportJobService importJobService;
 
@@ -44,9 +47,10 @@ public class ImportRunner implements ApplicationRunner {
             throws IOException, InterruptedException, XMLStreamException {
 
         Instant startedAt = Instant.now();
+        ImportOptions options = optionsParser.parse(args);
 
         try {
-            executeImport(startedAt);
+            executeImport(startedAt, options);
         } catch (IOException
                  | InterruptedException
                  | RuntimeException
@@ -62,7 +66,10 @@ public class ImportRunner implements ApplicationRunner {
         }
     }
 
-    private void executeImport(Instant startedAt)
+    private void executeImport(
+            Instant startedAt,
+            ImportOptions options
+    )
             throws IOException, InterruptedException, XMLStreamException {
 
         log.info("Starting address import");
