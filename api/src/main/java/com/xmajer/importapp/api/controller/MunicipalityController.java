@@ -1,5 +1,6 @@
 package com.xmajer.importapp.api.controller;
 
+import com.xmajer.importapp.api.dto.MunicipalityExtendedResponse;
 import com.xmajer.importapp.api.dto.MunicipalityResponse;
 import com.xmajer.importapp.api.service.MunicipalityService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,5 +29,14 @@ public class MunicipalityController {
     )
     public ResponseEntity<List<MunicipalityResponse>> getAll() {
         return ResponseEntity.ok(municipalityService.getAll());
+    }
+
+    @GetMapping
+    @Operation(summary = "List municipalities with extended data")
+    @ApiResponse(
+            responseCode = "200", description = "Extended municipalities returned"
+    )
+    public ResponseEntity<List<MunicipalityExtendedResponse>> getAllExtended() {
+        return ResponseEntity.ok(municipalityService.getAllExtended());
     }
 }
