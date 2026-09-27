@@ -22,7 +22,7 @@ public final class RuianXml {
             "urn:cz:isvs:ruian:schemas:PouIntTypy:v1";
 
     public static final String COM =
-            "urn:cz:isvs:ruian:schemas:ComTypy:v1";
+            "urn:cz:isvs:ruian:schemas:CommonTypy:v1";
 
     public static final String GML =
             "http://www.opengis.net/gml/3.2";
