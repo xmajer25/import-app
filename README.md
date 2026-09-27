@@ -15,10 +15,6 @@ I wanted to extend the assignment a bit by pretending this would not be a one-ti
 
 The API is currently missing security, proper production logging, observation, and probably a few other things that would be needed in a real system. I did not add those mainly because of time.
 
-## AI disclaimer
-
-Since I want to continue my career in the Java Backend direction, I tend to limit my AI usage mostly to conversation and code review instead of direct code generation. In this project, the two main areas where I used AI were tests and Flyway migrations. I also used it while working in the importer package, but most of that code was rewritten by hand anyway.
-
 ## Persistence
 
 The two main assignment entities are:
