@@ -18,10 +18,11 @@ public class ArchiveExtractor {
 
         ZipEntry xmlEntry = findXmlEntry(archive);
 
-        log.info(
-                "Extracting XML entry {}",
-                xmlEntry.getName()
-        );
+        log.atInfo()
+                .setMessage("Extracting XML entry")
+                .addKeyValue("archive", archive.getName())
+                .addKeyValue("entry",  xmlEntry.getName())
+                .log();
 
         return archive.getInputStream(xmlEntry);
     }

@@ -1,6 +1,7 @@
 package com.xmajer.importapp.importer.archive;
 
 import com.xmajer.importapp.importer.config.ImportProperties;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -10,6 +11,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Path;
 
+@Slf4j
 @Component
 public class ArchiveDownloader {
 
@@ -33,6 +35,13 @@ public class ArchiveDownloader {
                 .build();
 
         HttpResponse<Path> response;
+
+        log.atInfo()
+                .setMessage("Sending HTTP download request")
+                .addKeyValue("source", source.toString())
+                .addKeyValue("destination", destination.toString())
+                .log();
+
 
         try {
             response = httpClient.send(

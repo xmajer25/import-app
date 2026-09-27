@@ -72,7 +72,9 @@ public class ImportRunner implements ApplicationRunner {
     )
             throws IOException, InterruptedException, XMLStreamException {
 
-        log.info("Starting address import");
+        log.atInfo()
+                .setMessage("Started address import")
+                .log();
 
         Path archivePath = Files.createTempFile(
                 "address-import-",
@@ -87,11 +89,19 @@ public class ImportRunner implements ApplicationRunner {
 
             ParsedAddressImport data = parseArchive(archivePath, options);
 
+            log.atInfo()
+                    .setMessage("Validating data")
+                    .log();
+
             var violations = validator.validate(data);
 
             if (!violations.isEmpty()) {
                 throw new ConstraintViolationException(violations);
             }
+
+            log.atInfo()
+                    .setMessage("Persisting data")
+                    .log();
 
             ImportSaveSummary saveSummary = persistenceService.save(data);
 
@@ -101,10 +111,10 @@ public class ImportRunner implements ApplicationRunner {
                     saveSummary
             );
 
-            log.info(
-                    "Address import completed in {} ms",
-                    Duration.between(startedAt, Instant.now()).toMillis()
-            );
+            log.atInfo()
+                    .setMessage("Address import completed successfully")
+                    .addKeyValue("duration", Duration.between(startedAt, Instant.now()).toMillis())
+                    .log();
 
         } finally {
             deleteTempFile(archivePath);
@@ -133,11 +143,11 @@ public class ImportRunner implements ApplicationRunner {
         try {
             Files.deleteIfExists(path);
         } catch (IOException exception) {
-            log.warn(
-                    "Could not delete temporary archive {}",
-                    path,
-                    exception
-            );
+            log.atWarn()
+                    .setMessage("Could not delete temporary file")
+                    .addKeyValue("path", path.toAbsolutePath().toString())
+                    .setCause(exception)
+                    .log();
         }
     }
 }
